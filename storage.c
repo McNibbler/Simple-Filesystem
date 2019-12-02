@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#define FUSE_USE_VERSION 26
+#include <fuse.h>
+
+#include "storage.h"
+#include "pages.h"
+#include "util.h"
+
+void
+storage_init(const char* path)
+{
+    pages_init(path);
+    storage_directory_mk("/");
+}
+
+int
+storage_directory_mk(const char* path) {
+	int tmp = storage_file_mk(path, 040777);
+	file_node* node = pages_fetch_node_with_num(tmp);
+	if (node->count == 0) {
+		int writer = 0;
+		storage_write_data(path, &writer, 4, 0); // 4 size of int
+	}
+	return tmp;
+}
+
+int
+storage_directory_read(const char* path, void* buf, fuse_fill_dir_t filler) {
+	return pages_read_inodes(path, buf, filler);
+}
+
+// gets the stats - fixed the mode here that fixed the mnt perms
+int storage_stat(const char* path, struct stat* st) {
+	file_node* tmp = pages_fetch_node(path);
+	if (tmp == 0) {
+		return -1;
+	} else {
+		// make sure everything is 0'd first
+		memset((void*) st, 0, sizeof(struct stat));
+		// then set stats
+		st->st_uid = getuid();
+		st->st_gid = getgid();
+		st->st_size = tmp->size;
+		st->st_mode = tmp->mode;
+		return 0;
+	}
+}
+
+int storage_contains(const char* path) {
+	file_node* node = pages_fetch_node(path);
+	return (node == 0) ? -1 : 0;
+}
+
+int
+storage_file_mk(const char* path, mode_t mode) {
+	file_node* node = pages_fetch_node(path);
+	if (node != 0) {
+		puts("not here");
+		// basically, this is already a file, and it just returns the
+		// node number
+		return node->node_num;
+	} else {
+		int tmp = pages_fetch_empty(); // number at empty node
+		node = pages_fetch_node_with_num(tmp);
+		node->node_num = tmp;
+		node->mode = mode;
+		strcpy(node->path, path);
+		if (strcmp("/", path) != 0) {
+			pages_add_file_dir("/", path);
+		}
+		puts("i'm pretty sure i'm here");
+		return tmp;
+	}
+
+}
+
+int storage_file_rename(const char* path, const char* new) {
+	file_node* node = pages_fetch_node(path);
+	// literally just copy the path over from the old
+	strcpy(node->path, new); // do i need 0ing.
+	// these aren't sys calls, so ret is just 0
+	return 0;
+}
+
+// first four args of nufs_read, very similar to write data too
+int
+storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
+	file_node* node = pages_fetch_node(path);
+	if (node == 0 || offset < 0) {
+		return -1;
+	} else if (size == 0) {
+		return 0;
+	} else {
+		// copies data of size into buff.
+		void *pageTemp = pages_get_page(node->ptr[0]);
+		pageTemp += offset;
+		memcpy((void*) buf, pageTemp, size);
+		return size;
+	}
+}
+
+int
+storage_write_data(const char *path, const void* buf, size_t size, off_t offset) {
+	file_node* node = pages_fetch_node(path);
+	puts("here in write data");
+	if (node == 0 || offset < 0) {
+		return -1;
+	} else if (size == 0) {
+		return 0;
+	} else if (node->count == 0) {
+		puts("here should be for empty");
+		pages_give_page(node); // same as above for the checkers, except this line.
+	}
+	void *pageTemp = pages_get_page(node->ptr[0]);
+	pageTemp += offset;
+	memcpy(pageTemp, buf, size);
+	// increase the size after in case you wrote too much
+	int sizeTotal = size + offset;
+	node->size = max(size, sizeTotal);
+	return size;
+}
+
+int
+storage_file_rm(const char* path) {
+	file_node* node = pages_fetch_node(path);
+	if (node == 0) {
+		return -1;
+	} else {
+		int num = node->node_num;
+		pages_free_node(node);
+		file_node *dir = pages_fetch_node("/");
+		pages_remove_node_dir(dir, num);
+		return 0;
+	}
+
+
+}
