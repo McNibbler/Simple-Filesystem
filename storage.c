@@ -18,8 +18,10 @@ storage_init(const char* path)
 
 int
 storage_directory_mk(const char* path) {
+	puts("does this make a directory?");
 	int tmp = storage_file_mk(path, 040777);
 	file_node* node = pages_fetch_node_with_num(tmp);
+	strcpy(node->path, path);
 	if (node->count == 0) {
 		int writer = 0;
 		storage_write_data(path, &writer, 4, 0); // 4 size of int
@@ -34,9 +36,12 @@ storage_directory_read(const char* path, void* buf, fuse_fill_dir_t filler) {
 
 // gets the stats - fixed the mode here that fixed the mnt perms
 int storage_stat(const char* path, struct stat* st) {
+	printf("%s\n", path);
 	file_node* tmp = pages_fetch_node(path);
 	if (tmp == 0) {
+		puts("fucking kill me");
 		return -1;
+//		return 0;
 	} else {
 		// make sure everything is 0'd first
 		memset((void*) st, 0, sizeof(struct stat));
@@ -45,6 +50,9 @@ int storage_stat(const char* path, struct stat* st) {
 		st->st_gid = getgid();
 		st->st_size = tmp->size;
 		st->st_mode = tmp->mode;
+		printf("refs: %d\n", tmp->refs);
+		st->st_nlink = tmp->refs + 1;
+		st->st_ino = tmp->node_num;
 		return 0;
 	}
 }
@@ -67,8 +75,10 @@ storage_file_mk(const char* path, mode_t mode) {
 		node = pages_fetch_node_with_num(tmp);
 		node->node_num = tmp;
 		node->mode = mode;
+		node->refs = 0;
 		strcpy(node->path, path);
-		if (strcmp("/", path) != 0) {
+		if (!streq("/", path)) {
+			printf("%s\n", path);
 			pages_add_file_dir("/", path);
 		}
 		puts("i'm pretty sure i'm here");
@@ -135,6 +145,33 @@ storage_file_rm(const char* path) {
 		pages_remove_node_dir(dir, num);
 		return 0;
 	}
+}
 
+// this function can literaly just set all the pointers from target to link
+// and copies some other basic stuff.
+// creates a link
+int
+storage_link(const char* from_path, const char* link_path) {
+	file_node* from_node = pages_fetch_node(from_path);
+//	file_node* link_node = pages_fetch_node(link_path);
+	int node_num = pages_fetch_empty();
+	file_node* link_node = pages_fetch_node_with_num(node_num);
 
+	// copy all the data over to strcpy and all the pointers
+	strcpy(link_node->path, link_path);
+	link_node->mode = from_node->mode;
+	link_node->node_num = node_num;
+	link_node->refs = 0;
+
+	link_node->count = from_node->count;
+	// in case something messes up, dont use link_node->count, use node->count
+	// this ensures that I'm setting something at every point i guess.
+	for (int ii = 0; ii < link_node->count; ++ii) {
+		link_node->ptr[ii] = from_node->ptr[ii];
+	}
+
+	from_node->refs++;
+	link_node->refs++;
+	pages_add_file_dir("/", link_path);
+	return node_num;
 }

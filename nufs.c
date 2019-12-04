@@ -32,9 +32,9 @@ nufs_access(const char *path, int mask)
 int
 nufs_getattr(const char *path, struct stat *st)
 {
-//	printf("getattr(%s)\n", path);
 	int rv = storage_stat(path, st);
-	return (rv == 0) ? 0 : -ENOENT;
+	printf("getattr(%s) -> %d\n", path, rv);
+	return (rv == -1) ? -ENOENT : 0;
 }
 
 // implementation for: man 2 readdir
@@ -65,7 +65,11 @@ int
 nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
     int rv = -1;
-    rv = storage_file_mk(path, mode);
+    if (mode & 040000) {
+    	rv = storage_directory_mk(path);
+    } else {
+    	rv = storage_file_mk(path, mode);
+    }
     printf("mknod(%s, %04o) -> %d\n", path, mode, rv);
     // file make is actualy returning the inode value upon return
     // i have to ignore rv here because otherwise it breaks
@@ -93,13 +97,14 @@ nufs_unlink(const char *path)
     return rv == -1 ? -ENOENT : 0;
 }
 
-//not relevant yet
 int
 nufs_link(const char *from, const char *to)
 {
     int rv = -1;
+    puts("pooping");
+    rv = storage_link(from, to);
     printf("link(%s => %s) -> %d\n", from, to, rv);
-	return rv;
+	return (rv == -1) ? -ENOENT : 0;
 }
 
 // same as below

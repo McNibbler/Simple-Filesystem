@@ -51,7 +51,7 @@ pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
         st.st_gid = getgid();
         st.st_mode = file_nodes[tmp].mode;
         st.st_size = file_nodes[tmp].size;
-//        st.st_ino = tmp; // is this necessary? i put it in to save me from
+        st.st_ino = tmp; // is this necessary? i put it in to save me from
         // corrupted files because my vm crashed once, but commenting out
         // seems fine
         void* point = &(file_nodes[tmp].path);
@@ -123,7 +123,7 @@ pages_get_page(int pnum)
 file_node*
 pages_fetch_node(const char* path) {
 	for (int ii = 0; ii < nodes_count; ++ii) {
-		if (bitmap_node[ii] == 1 && strcmp(file_nodes[ii].path, path) == 0) {
+		if (bitmap_node[ii] == 1 && streq(file_nodes[ii].path, path)) {
 			return &(file_nodes[ii]);
 		}
 	}
