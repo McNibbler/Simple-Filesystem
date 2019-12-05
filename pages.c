@@ -39,42 +39,25 @@ int
 pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
 {
     file_node* node = pages_fetch_node(path);
+    assert(node->mode & 040000);
     int *page = pages_get_page(node->ptr[0]);
-//    printf("page[5] right now: %d", page[5]);
     int entries = page[0];
-//    printf("entries: %d", entries);
-//    puts("here???");
 
     for (int i = 0; i < entries; i++) {
-//        printf("i-value: %d", i);
-//        puts("here???");
         int tmp = page[i + 1];
-//        printf("page[5] right now: %d", page[5]);
-//        printf("tmp: %d\n", tmp);
         struct stat st;
         // 0s everything, in case
         memset(&st, 0, sizeof(struct stat));
-//        puts("here after memset???");
-//        printf("tmp: %d\n", tmp);
         st.st_uid  = getuid();
-//        puts("here after getuid???");
-//        st.st_gid = getgid();
-//        printf("tmp: %d\n", tmp);
-//        puts("temp print");
         st.st_mode = file_nodes[tmp].mode;
-//        puts("here after mode???");
 
         st.st_size = file_nodes[tmp].size;
-//        puts("here after size???");
 
-//        st.st_ino = tmp; // is this necessary? i put it in to save me from
+        st.st_ino = tmp; // is this necessary? i put it in to save me from
         // corrupted files because my vm crashed once, but commenting out
         // seems fine
-//        puts("here after statset???");
         void* point = &(file_nodes[tmp].path);
-//        puts("here after point???");
         filler(buf, point + 1, &st, 0);
-//        puts("here after filler???");
 
     }
 
@@ -128,7 +111,7 @@ pages_free()
 void*
 pages_get_page(int pnum)
 {
-    return blocks + 4096 * pnum;
+    return (void*)(((char*)blocks) + 4096 * pnum);
 }
 
 //starter code that i didn't use
@@ -216,6 +199,8 @@ pages_remove_node_dir(file_node* dir, int num) {
 void
 pages_add_file_dir(const char* dir, const char* file) {
 	file_node* dirTemp = pages_fetch_node(dir);
+	puts("Thomas look here");
+	printf("%s\n", dirTemp->path);
 	// get the int array for the dir
 	int* data = pages_get_page(dirTemp->ptr[0]);
 	file_node* fileTemp = pages_fetch_node(file);
@@ -224,3 +209,8 @@ pages_add_file_dir(const char* dir, const char* file) {
 	data[++data[0]] = fileTemp->node_num;
 	printf("data[0]: %d, fileTemp->node_num: %d\n", data[0], fileTemp->node_num);
 }
+
+
+
+
+

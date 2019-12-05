@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
@@ -39,9 +40,7 @@ int storage_stat(const char* path, struct stat* st) {
 	printf("%s\n", path);
 	file_node* tmp = pages_fetch_node(path);
 	if (tmp == 0) {
-		puts("fucking kill me");
 		return -1;
-//		return 0;
 	} else {
 		// make sure everything is 0'd first
 		memset((void*) st, 0, sizeof(struct stat));
@@ -72,75 +71,35 @@ storage_file_mk(const char* path, mode_t mode) {
 		return node->node_num;
 	} else {
 
-//		if (streq(path, "/cc")) {
-//		    file_node* node = pages_fetch_node("/");
-//		    int *page = pages_get_page(node->ptr[0]);
-//	        printf("page[5] right now: %d", page[5]);
-//		}
 		int tmp = pages_fetch_empty(); // number at empty node
-//		if (streq(path, "/cc")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[5] right now: %d", page[5]);
-//			printf("empty tmp right now: %d", tmp);
-//		}
 		node = pages_fetch_node_with_num(tmp);
-//		if (streq(path, "/cc")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[5] after fetch node with num: %d\n", page[5]);
-//		}
-//		for (int ii = 0; ii < 10; ++ii) {
-//			node->ptr[ii] = 0;
-//		}
-//		if (streq(path, "/cc") || streq(path, "/d")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[1] after tmp: %d\n", page[1]);
-//			printf("page[2] after tmp: %d\n", page[2]);
-//			printf("page[3] after tmp: %d\n", page[3]);
-//			printf("page[4] after tmp: %d\n", page[4]);
-//			printf("page[5] after tmp: %d\n", page[5]);
-//			printf("node: %#010x\n", node);
-//		}
 		node->node_num = tmp;
-//		if (streq(path, "/cc") || streq(path, "/d")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[1] after tmp: %d\n", page[1]);
-//			printf("page[2] after tmp: %d\n", page[2]);
-//			printf("page[3] after tmp: %d\n", page[3]);
-//			printf("page[4] after tmp: %d\n", page[4]);
-//			printf("page[5] after tmp: %d\n", page[5]);
-//		}
 		node->mode = mode;
-//		if (streq(path, "/cc")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[5] after mode: %d\n", page[5]);
-//		}
 		node->refs = 0;
 		strcpy(node->path, path);
-//		if (streq(path, "/cc")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[5] after strcpy: %d\n", page[5]);
-//		}
 		if (!streq("/", path)) {
 			printf("%s\n", path);
+			
+			int ii = strlen(path);
+			for (; ii >= 0; --ii) {
+				if (path[ii] == '/') {
+					break;
+				}
+			}
+			char* breadcrumbs = malloc(64);
+			strncpy(breadcrumbs, path, ii);
+			
+			printf("%s\n", breadcrumbs);	
+			puts("bruh moment");
 			pages_add_file_dir("/", path);
+			/*
+			if (!strlen(breadcrumbs)) {
+				pages_add_file_dir("/", path);
+			}
+			else {
+				pages_add_file_dir(breadcrumbs, path);
+			}*/
 		}
-//		if (streq(path, "/cc")) {
-//			file_node *node = pages_fetch_node("/");
-//			int *page = pages_get_page(node->ptr[0]);
-//			printf("page[5] after addfile: %d\n", page[5]);
-//		}
-//		puts("i'm pretty sure i'm here");
-//		if (streq(path, "/cc")) {
-//		    file_node* node = pages_fetch_node("/");
-//		    int *page = pages_get_page(node->ptr[0]);
-//	        printf("page[5] right now: %d\n", page[5]);
-//		}
 		return tmp;
 	}
 
