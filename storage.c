@@ -72,73 +72,75 @@ storage_file_mk(const char* path, mode_t mode) {
 		return node->node_num;
 	} else {
 
-		if (streq(path, "/cc")) {
-		    file_node* node = pages_fetch_node("/");
-		    int *page = pages_get_page(node->ptr[0]);
-	        printf("page[2] right now: %d", page[2]);
-		}
+//		if (streq(path, "/cc")) {
+//		    file_node* node = pages_fetch_node("/");
+//		    int *page = pages_get_page(node->ptr[0]);
+//	        printf("page[5] right now: %d", page[5]);
+//		}
 		int tmp = pages_fetch_empty(); // number at empty node
-		if (streq(path, "/cc")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[2] right now: %d", page[2]);
-			printf("empty tmp right now: %d", tmp);
-		}
+//		if (streq(path, "/cc")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[5] right now: %d", page[5]);
+//			printf("empty tmp right now: %d", tmp);
+//		}
 		node = pages_fetch_node_with_num(tmp);
-		if (streq(path, "/cc")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[2] after fetch node with num: %d\n", page[2]);
-		}
-		for (int ii = 0; ii < 10; ++ii) {
-			node->ptr[ii] = 0;
-		}
-		if (streq(path, "/cc") || streq(path, "/d")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[1] after tmp: %d\n", page[1]);
-			printf("page[2] after tmp: %d\n", page[2]);
-			printf("page[3] after tmp: %d\n", page[3]);
-			printf("page[4] after tmp: %d\n", page[4]);
-			printf("node: %ld\n", &node);
-		}
+//		if (streq(path, "/cc")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[5] after fetch node with num: %d\n", page[5]);
+//		}
+//		for (int ii = 0; ii < 10; ++ii) {
+//			node->ptr[ii] = 0;
+//		}
+//		if (streq(path, "/cc") || streq(path, "/d")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[1] after tmp: %d\n", page[1]);
+//			printf("page[2] after tmp: %d\n", page[2]);
+//			printf("page[3] after tmp: %d\n", page[3]);
+//			printf("page[4] after tmp: %d\n", page[4]);
+//			printf("page[5] after tmp: %d\n", page[5]);
+//			printf("node: %#010x\n", node);
+//		}
 		node->node_num = tmp;
-		if (streq(path, "/cc") || streq(path, "/d")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[1] after tmp: %d\n", page[1]);
-			printf("page[2] after tmp: %d\n", page[2]);
-			printf("page[3] after tmp: %d\n", page[3]);
-			printf("page[4] after tmp: %d\n", page[4]);
-		}
+//		if (streq(path, "/cc") || streq(path, "/d")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[1] after tmp: %d\n", page[1]);
+//			printf("page[2] after tmp: %d\n", page[2]);
+//			printf("page[3] after tmp: %d\n", page[3]);
+//			printf("page[4] after tmp: %d\n", page[4]);
+//			printf("page[5] after tmp: %d\n", page[5]);
+//		}
 		node->mode = mode;
-		if (streq(path, "/cc")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[2] after mode: %d\n", page[2]);
-		}
+//		if (streq(path, "/cc")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[5] after mode: %d\n", page[5]);
+//		}
 		node->refs = 0;
 		strcpy(node->path, path);
-		if (streq(path, "/cc")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[2] after strcpy: %d\n", page[2]);
-		}
+//		if (streq(path, "/cc")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[5] after strcpy: %d\n", page[5]);
+//		}
 		if (!streq("/", path)) {
 			printf("%s\n", path);
 			pages_add_file_dir("/", path);
 		}
-		if (streq(path, "/cc")) {
-			file_node *node = pages_fetch_node("/");
-			int *page = pages_get_page(node->ptr[0]);
-			printf("page[2] after addfile: %d\n", page[2]);
-		}
-		puts("i'm pretty sure i'm here");
-		if (streq(path, "/cc")) {
-		    file_node* node = pages_fetch_node("/");
-		    int *page = pages_get_page(node->ptr[0]);
-	        printf("page[2] right now: %d\n", page[2]);
-		}
+//		if (streq(path, "/cc")) {
+//			file_node *node = pages_fetch_node("/");
+//			int *page = pages_get_page(node->ptr[0]);
+//			printf("page[5] after addfile: %d\n", page[5]);
+//		}
+//		puts("i'm pretty sure i'm here");
+//		if (streq(path, "/cc")) {
+//		    file_node* node = pages_fetch_node("/");
+//		    int *page = pages_get_page(node->ptr[0]);
+//	        printf("page[5] right now: %d\n", page[5]);
+//		}
 		return tmp;
 	}
 
@@ -178,7 +180,7 @@ storage_write_data(const char *path, const void* buf, size_t size, off_t offset)
 	} else if (size == 0) {
 		return 0;
 	} else if (node->count == 0) {
-		puts("here should be for empty");
+//		puts("here should be for empty");
 		pages_give_page(node); // same as above for the checkers, except this line.
 	}
 	void *pageTemp = pages_get_page(node->ptr[0]);

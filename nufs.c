@@ -74,7 +74,7 @@ nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 	if (streq(path, "/cc")) {
 	    file_node* node = pages_fetch_node("/");
 	    int *page = pages_get_page(node->ptr[0]);
-        printf("page[2] right now: %d", page[2]);
+        printf("page[5] right now: %d", page[5]);
 	}
     int rv = -1;
     if (mode & 040000) {
@@ -94,7 +94,7 @@ nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 	if (streq(path, "/cc")) {
 	    file_node* node = pages_fetch_node("/");
 	    int *page = pages_get_page(node->ptr[0]);
-        printf("page[2] right now: %d", page[2]);
+        printf("page[5] right now: %d", page[5]);
 	}
     return 0;
 }
