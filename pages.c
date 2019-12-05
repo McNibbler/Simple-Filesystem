@@ -40,9 +40,7 @@ pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
 {
     file_node* node = pages_fetch_node("/");
     int *page = pages_get_page(node->ptr[0]);
-//    printf("page[5] right now: %d", page[5]);
     int entries = page[0];
-    printf("how many entries %d\n", page[0]);
 
     if (streq(path, "/")) {
     	for (int i = 0; i < entries; i++) {
@@ -221,6 +219,7 @@ pages_remove_node_dir(file_node* dir, int num) {
 
 void
 pages_add_file_dir(const char* dir, const char* file) {
+	printf("dir to add: %s, file to add: %s\n", dir, file);
 	file_node* dirTemp = pages_fetch_node(dir);
 	// get the int array for the dir
 	int* data = pages_get_page(dirTemp->ptr[0]);

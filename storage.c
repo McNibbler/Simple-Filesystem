@@ -95,7 +95,6 @@ storage_file_mk(const char* path, mode_t mode) {
 			else {
 				pages_add_file_dir("/", path);
 //				pages_add_file_dir(substr, path);
-			}
 		}
 		return tmp;
 	}
