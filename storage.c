@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
@@ -200,4 +201,15 @@ storage_link(const char* from_path, const char* link_path) {
 	link_node->refs++;
 	pages_add_file_dir("/", link_path);
 	return node_num;
+}
+
+
+int storage_chmod(const char* path, mode_t mode) {
+	file_node* node = pages_fetch_node(path);
+	if (!node) {
+		return -ENOENT;
+	}
+	node->mtime = time(NULL);
+	node->mode = mode;
+	return 0;
 }
