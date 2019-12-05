@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
@@ -48,6 +49,9 @@ int storage_stat(const char *path, struct stat *st) {
 		printf("refs: %d\n", tmp->refs);
 		st->st_nlink = tmp->refs + 1;
 		st->st_ino = tmp->node_num;
+		st->st_atime = tmp->atime;
+		st->st_ctime = tmp->ctime;
+		st->st_mtime = tmp->mtime;
 		return 0;
 	}
 }
@@ -70,6 +74,10 @@ int storage_file_mk(const char *path, mode_t mode) {
 		node->node_num = tmp;
 		node->mode = mode;
 		node->refs = 0;
+		time_t now = time(NULL);
+		node->atime = now;
+		node->ctime = now;
+		node->mtime = now;
 		strcpy(node->path, path);
 		if (!streq("/", path)) {
 			printf("%s\n", path);
@@ -79,24 +87,27 @@ int storage_file_mk(const char *path, mode_t mode) {
 					break;
 				}
 			}
-			char *substr = malloc(64);
-			strncpy(substr, path, ii);
-//			pages_add_file_dir("/", path);
-			printf("%s\n", substr);
-			puts("here is the path");
-			if (strlen(substr) == 0) {
+			char* breadcrumbs = malloc(64);
+			strncpy(breadcrumbs, path, ii);
+			
+			printf("%s\n", breadcrumbs);	
+			puts("bruh moment");
+			pages_add_file_dir("/", path);
+			/*
+			if (!strlen(breadcrumbs)) {
 				pages_add_file_dir("/", path);
-			} else {
-				pages_add_file_dir("/", path);
-//				pages_add_file_dir(substr, path);
 			}
-			return tmp;
+			else {
+				pages_add_file_dir(breadcrumbs, path);
+			}*/
 		}
+		return tmp;
 	}
 }
 
-int storage_file_rename(const char *path, const char *new) {
-	file_node *node = pages_fetch_node(path);
+int storage_file_rename(const char* path, const char* new) {
+	file_node* node = pages_fetch_node(path);
+	node->mtime = time(NULL);
 	// literally just copy the path over from the old.
 	strcpy(node->path, new); // do i need 0ing.
 	// these aren't sys calls, so ret is just 0
@@ -104,8 +115,10 @@ int storage_file_rename(const char *path, const char *new) {
 }
 
 // first four args of nufs_read, very similar to write data too
-int storage_fetch_data(const char *path, char *buf, size_t size, off_t offset) {
-	file_node *node = pages_fetch_node(path);
+int
+storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
+	file_node* node = pages_fetch_node(path);
+	node->atime = time(NULL);
 	if (node == 0 || offset < 0) {
 		return -1;
 	} else if (size == 0) {
@@ -119,16 +132,15 @@ int storage_fetch_data(const char *path, char *buf, size_t size, off_t offset) {
 	}
 }
 
-int storage_write_data(const char *path, const void *buf, size_t size,
-		off_t offset) {
-	file_node *node = pages_fetch_node(path);
-	puts("here in write data");
+int
+storage_write_data(const char *path, const void* buf, size_t size, off_t offset) {
+	file_node* node = pages_fetch_node(path);
+	node->mtime = time(NULL);
 	if (node == 0 || offset < 0) {
 		return -1;
 	} else if (size == 0) {
 		return 0;
 	} else if (node->count == 0) {
-//		puts("here should be for empty");
 		pages_give_page(node); // same as above for the checkers, except this line.
 	}
 	void *pageTemp = pages_get_page(node->ptr[0]);
@@ -180,3 +192,50 @@ int storage_link(const char *from_path, const char *link_path) {
 	pages_add_file_dir("/", link_path);
 	return node_num;
 }
+
+
+int storage_chmod(const char* path, mode_t mode) {
+	file_node* node = pages_fetch_node(path);
+	if (!node) {
+		return -ENOENT;
+	}
+	node->mtime = time(NULL);
+	node->mode = mode;
+	return 0;
+}
+
+
+int storage_symlink(const char* linkname, const char* path) {
+	file_node* to = pages_fetch_node(linkname);	// Make sure this exists
+	file_node* from = pages_fetch_node(path);	// Make sure this doesn't
+	if (from) {
+		return -EEXIST;
+	}
+	/*
+	else if (!to) {
+		return -ENOENT;
+	}
+	*/
+	
+	int rv = storage_file_mk(path, 0120777);\
+	if (rv < 0) {
+		return -ENOSPC;
+	}
+	from = pages_fetch_node(path);	// This should exist now
+	//strncpy(pages_get_page(from->ptr[0]), to, 4096);
+	return 0;
+}
+
+int storage_utimens(const char* path, const struct timespec ts[2]) {
+	file_node* node = pages_fetch_node(path);
+	if (!node) {
+		return -ENOENT;
+	}
+	// Modify access and modify time, but not creation time
+	node->atime = ts[0].tv_sec;
+	node->mtime = ts[1].tv_sec;
+	return 0;
+}
+
+
+

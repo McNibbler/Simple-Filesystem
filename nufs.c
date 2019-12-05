@@ -148,7 +148,7 @@ nufs_rename(const char *from, const char *to)
 int
 nufs_chmod(const char *path, mode_t mode)
 {
-    int rv = 0;
+    int rv = storage_chmod(path, mode);
     printf("chmod(%s, %04o) -> %d\n", path, mode, rv);
     return rv;
 }
@@ -198,11 +198,10 @@ nufs_write(const char *path, const char *buf, size_t size, off_t offset, struct 
 }
 
 // Update the timestamps on a file or directory.
-// not relevant yet
 int
 nufs_utimens(const char* path, const struct timespec ts[2])
 {
-    int rv = 0;
+    int rv = storage_utimens(path, ts);
     printf("utimens(%s, [%ld, %ld; %ld %ld]) -> %d\n",
            path, ts[0].tv_sec, ts[0].tv_nsec, ts[1].tv_sec, ts[1].tv_nsec, rv);
 	return rv;
@@ -218,6 +217,14 @@ nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
     printf("ioctl(%s, %d, ...) -> %d\n", path, cmd, rv);
     return rv;
 }
+
+
+int nufs_symlink(const char* linkname, const char* path) {
+	int rv = storage_symlink(linkname, path);
+	printf("symlink -> %d", rv);
+	return rv;	
+}
+
 
 void
 nufs_init_ops(struct fuse_operations* ops)
@@ -239,6 +246,7 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->write    = nufs_write;
     ops->utimens  = nufs_utimens;
     ops->ioctl    = nufs_ioctl;
+    ops->symlink = nufs_symlink;
 };
 
 struct fuse_operations nufs_ops;

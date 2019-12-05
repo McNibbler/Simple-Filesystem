@@ -82,6 +82,7 @@ pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
 			int strLen = strlen(path) + 1;
 			filler(buf, point + strLen, &st, 0);
     	}
+
     }
     return 0;
 }
@@ -221,6 +222,8 @@ void
 pages_add_file_dir(const char* dir, const char* file) {
 	printf("dir to add: %s, file to add: %s\n", dir, file);
 	file_node* dirTemp = pages_fetch_node(dir);
+	puts("Thomas look here");
+	printf("%s\n", dirTemp->path);
 	// get the int array for the dir
 	int* data = pages_get_page(dirTemp->ptr[0]);
 	file_node* fileTemp = pages_fetch_node(file);
@@ -229,3 +232,8 @@ pages_add_file_dir(const char* dir, const char* file) {
 	data[++data[0]] = fileTemp->node_num;
 	printf("data[0]: %d, fileTemp->node_num: %d\n", data[0], fileTemp->node_num);
 }
+
+
+
+
+
