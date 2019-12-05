@@ -213,3 +213,39 @@ int storage_chmod(const char* path, mode_t mode) {
 	node->mode = mode;
 	return 0;
 }
+
+
+int storage_symlink(const char* linkname, const char* path) {
+	file_node* to = pages_fetch_node(linkname);	// Make sure this exists
+	file_node* from = pages_fetch_node(path);	// Make sure this doesn't
+	if (from) {
+		return -EEXIST;
+	}
+	/*
+	else if (!to) {
+		return -ENOENT;
+	}
+	*/
+	
+	int rv = storage_file_mk(path, 0120777);\
+	if (rv < 0) {
+		return -ENOSPC;
+	}
+	from = pages_fetch_node(path);	// This should exist now
+	//strncpy(pages_get_page(from->ptr[0]), to, 4096);
+	return 0;
+}
+
+int storage_utimens(const char* path, const struct timespec ts[2]) {
+	file_node* node = pages_fetch_node(path);
+	if (!node) {
+		return -ENOENT;
+	}
+	// Modify access and modify time, but not creation time
+	node->atime = ts[0].tv_sec;
+	node->mtime = ts[1].tv_sec;
+	return 0;
+}
+
+
+

@@ -29,6 +29,8 @@ int    storage_fetch_data(const char *path, char *buf, size_t size, off_t offset
 int    storage_write_data(const char *path, const void* buf, size_t size, off_t offset);
 int    storage_file_rm(const char* path);
 int    storage_link(const char* target_path, const char* link_path);
-int    storage_chmod(const char* path, mode_t mode);
+int storage_chmod(const char* path, mode_t mode);
+int storage_symlink(const char* from, const char* to);
+int storage_utimens(const char* path, const struct timespec ts[2]);
 
 #endif
