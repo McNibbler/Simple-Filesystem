@@ -52,6 +52,9 @@ int storage_stat(const char* path, struct stat* st) {
 		printf("refs: %d\n", tmp->refs);
 		st->st_nlink = tmp->refs + 1;
 		st->st_ino = tmp->node_num;
+		st->st_atime = tmp->atime;
+		st->st_ctime = tmp->ctime;
+		st->st_mtime = tmp->mtime;
 		return 0;
 	}
 }
@@ -76,6 +79,10 @@ storage_file_mk(const char* path, mode_t mode) {
 		node->node_num = tmp;
 		node->mode = mode;
 		node->refs = 0;
+		time_t now = time(NULL);
+		node->atime = now;
+		node->ctime = now;
+		node->mtime = now;
 		strcpy(node->path, path);
 		if (!streq("/", path)) {
 			printf("%s\n", path);
@@ -107,6 +114,7 @@ storage_file_mk(const char* path, mode_t mode) {
 
 int storage_file_rename(const char* path, const char* new) {
 	file_node* node = pages_fetch_node(path);
+	node->mtime = time(NULL);
 	// literally just copy the path over from the old.
 	strcpy(node->path, new); // do i need 0ing.
 	// these aren't sys calls, so ret is just 0
@@ -117,6 +125,7 @@ int storage_file_rename(const char* path, const char* new) {
 int
 storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
 	file_node* node = pages_fetch_node(path);
+	node->atime = time(NULL);
 	if (node == 0 || offset < 0) {
 		return -1;
 	} else if (size == 0) {
@@ -133,13 +142,12 @@ storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
 int
 storage_write_data(const char *path, const void* buf, size_t size, off_t offset) {
 	file_node* node = pages_fetch_node(path);
-	puts("here in write data");
+	node->mtime = time(NULL);
 	if (node == 0 || offset < 0) {
 		return -1;
 	} else if (size == 0) {
 		return 0;
 	} else if (node->count == 0) {
-//		puts("here should be for empty");
 		pages_give_page(node); // same as above for the checkers, except this line.
 	}
 	void *pageTemp = pages_get_page(node->ptr[0]);
