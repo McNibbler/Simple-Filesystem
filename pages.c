@@ -40,22 +40,41 @@ pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
 {
     file_node* node = pages_fetch_node(path);
     int *page = pages_get_page(node->ptr[0]);
+    printf("page[2] right now: %d", page[2]);
     int entries = page[0];
+    printf("entries: %d", entries);
+    puts("here???");
 
     for (int i = 0; i < entries; i++) {
+        printf("i-value: %d", i);
+        puts("here???");
         int tmp = page[i + 1];
+        printf("page[2] right now: %d", page[2]);
+        printf("tmp: %d\n", tmp);
         struct stat st;
         // 0s everything, in case
         memset(&st, 0, sizeof(struct stat));
+        puts("here after memset???");
+        printf("tmp: %d\n", tmp);
         st.st_uid  = getuid();
-        st.st_gid = getgid();
+        puts("here after getuid???");
+//        st.st_gid = getgid();
+        printf("tmp: %d\n", tmp);
+        puts("temp print");
         st.st_mode = file_nodes[tmp].mode;
+        puts("here after mode???");
+
         st.st_size = file_nodes[tmp].size;
-        st.st_ino = tmp; // is this necessary? i put it in to save me from
+        puts("here after size???");
+
+//        st.st_ino = tmp; // is this necessary? i put it in to save me from
         // corrupted files because my vm crashed once, but commenting out
         // seems fine
+        puts("here after statset???");
         void* point = &(file_nodes[tmp].path);
+        puts("here after point???");
         filler(buf, point + 1, &st, 0);
+        puts("here after filler???");
 
     }
 
@@ -71,22 +90,28 @@ pages_init(const char* path)
     int rv = ftruncate(pages_fd, NUFS_SIZE);
     assert(rv == 0);
 
-    pages_base = mmap(0, NUFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, pages_fd, 0);
+    pages_base = mmap(0, 10 * NUFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, pages_fd, 0);
     assert(pages_base != MAP_FAILED);
 
     // set bitmaps and set inodes
     void* curr = pages_base;
     // insert the bitmap for nodes at the base
     bitmap_node = curr;
+    for (int ii = 0; ii < nodes_count; ++ii) {
+    	bitmap_node[ii] = 0;
+    }
     curr += nodes_count; // bitmap so everything is 1 byte
     // insert the bitmap for blocks at the curr base after the current node count
     bitmap_block = curr;
+    for (int ii = 0; ii < PAGE_COUNT; ++ii) {
+		bitmap_block[ii] = 0;
+	}
     curr += PAGE_COUNT; // bitmap so everything is 1 byte
     // file nodes go after the bitmaps.
     file_nodes = curr;
     // thrust the blocks in somewhere after that
     // ask about this...is there an ideal size?
-    blocks = pages_base + 81920;
+    blocks = pages_base + 204800;
 
     // this is starter code that i'm keeping in
 //    void* pbm = get_pages_bitmap();
@@ -195,5 +220,7 @@ pages_add_file_dir(const char* dir, const char* file) {
 	int* data = pages_get_page(dirTemp->ptr[0]);
 	file_node* fileTemp = pages_fetch_node(file);
 	// set the node ID to the data of the dir, at its size + 1
+
 	data[++data[0]] = fileTemp->node_num;
+	printf("data[0]: %d, fileTemp->node_num: %d\n", data[0], fileTemp->node_num);
 }

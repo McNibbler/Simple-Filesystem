@@ -15,6 +15,8 @@
 #include <fuse.h>
 #include "structs.h"
 #include "storage.h"
+#include "util.h"
+#include "pages.h"
 
 // implementation for: man 2 access
 // Checks if a file exists.
@@ -44,17 +46,22 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
              off_t offset, struct fuse_file_info *fi)
 {
     struct stat st;
-    int rv = nufs_getattr("/", &st);
+    puts("segfault1");
+    int rv = nufs_getattr(path, &st);
     assert(rv == 0);
 
+    puts("segfault2");
     filler(buf, ".", &st, 0);
 
+    puts("segfault3");
     // starter code snippet
 //    rv = nufs_getattr("/hello.txt", &st);
 //    assert(rv == 0);
 //    filler(buf, "hello.txt", &st, 0);
 
+    puts("segfault4");
     storage_directory_read(path, buf, filler);
+    puts("segfault5");
     printf("readdir(%s) -> %d\n", path, rv);
     return 0;
 }
@@ -64,15 +71,31 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 int
 nufs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
+	if (streq(path, "/cc")) {
+	    file_node* node = pages_fetch_node("/");
+	    int *page = pages_get_page(node->ptr[0]);
+        printf("page[2] right now: %d", page[2]);
+	}
     int rv = -1;
     if (mode & 040000) {
     	rv = storage_directory_mk(path);
     } else {
+    	puts("entered file");
+
+
+
+
+
     	rv = storage_file_mk(path, mode);
     }
     printf("mknod(%s, %04o) -> %d\n", path, mode, rv);
     // file make is actualy returning the inode value upon return
     // i have to ignore rv here because otherwise it breaks
+	if (streq(path, "/cc")) {
+	    file_node* node = pages_fetch_node("/");
+	    int *page = pages_get_page(node->ptr[0]);
+        printf("page[2] right now: %d", page[2]);
+	}
     return 0;
 }
 

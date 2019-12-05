@@ -71,17 +71,74 @@ storage_file_mk(const char* path, mode_t mode) {
 		// node number
 		return node->node_num;
 	} else {
+
+		if (streq(path, "/cc")) {
+		    file_node* node = pages_fetch_node("/");
+		    int *page = pages_get_page(node->ptr[0]);
+	        printf("page[2] right now: %d", page[2]);
+		}
 		int tmp = pages_fetch_empty(); // number at empty node
+		if (streq(path, "/cc")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[2] right now: %d", page[2]);
+			printf("empty tmp right now: %d", tmp);
+		}
 		node = pages_fetch_node_with_num(tmp);
+		if (streq(path, "/cc")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[2] after fetch node with num: %d\n", page[2]);
+		}
+		for (int ii = 0; ii < 10; ++ii) {
+			node->ptr[ii] = 0;
+		}
+		if (streq(path, "/cc") || streq(path, "/d")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[1] after tmp: %d\n", page[1]);
+			printf("page[2] after tmp: %d\n", page[2]);
+			printf("page[3] after tmp: %d\n", page[3]);
+			printf("page[4] after tmp: %d\n", page[4]);
+			printf("node: %ld\n", &node);
+		}
 		node->node_num = tmp;
+		if (streq(path, "/cc") || streq(path, "/d")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[1] after tmp: %d\n", page[1]);
+			printf("page[2] after tmp: %d\n", page[2]);
+			printf("page[3] after tmp: %d\n", page[3]);
+			printf("page[4] after tmp: %d\n", page[4]);
+		}
 		node->mode = mode;
+		if (streq(path, "/cc")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[2] after mode: %d\n", page[2]);
+		}
 		node->refs = 0;
 		strcpy(node->path, path);
+		if (streq(path, "/cc")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[2] after strcpy: %d\n", page[2]);
+		}
 		if (!streq("/", path)) {
 			printf("%s\n", path);
 			pages_add_file_dir("/", path);
 		}
+		if (streq(path, "/cc")) {
+			file_node *node = pages_fetch_node("/");
+			int *page = pages_get_page(node->ptr[0]);
+			printf("page[2] after addfile: %d\n", page[2]);
+		}
 		puts("i'm pretty sure i'm here");
+		if (streq(path, "/cc")) {
+		    file_node* node = pages_fetch_node("/");
+		    int *page = pages_get_page(node->ptr[0]);
+	        printf("page[2] right now: %d\n", page[2]);
+		}
 		return tmp;
 	}
 
@@ -89,7 +146,7 @@ storage_file_mk(const char* path, mode_t mode) {
 
 int storage_file_rename(const char* path, const char* new) {
 	file_node* node = pages_fetch_node(path);
-	// literally just copy the path over from the old
+	// literally just copy the path over from the old.
 	strcpy(node->path, new); // do i need 0ing.
 	// these aren't sys calls, so ret is just 0
 	return 0;
