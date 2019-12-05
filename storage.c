@@ -10,18 +10,15 @@
 #include "pages.h"
 #include "util.h"
 
-void
-storage_init(const char* path)
-{
-    pages_init(path);
-    storage_directory_mk("/");
+void storage_init(const char *path) {
+	pages_init(path);
+	storage_directory_mk("/");
 }
 
-int
-storage_directory_mk(const char* path) {
+int storage_directory_mk(const char *path) {
 	puts("does this make a directory?");
 	int tmp = storage_file_mk(path, 040777);
-	file_node* node = pages_fetch_node_with_num(tmp);
+	file_node *node = pages_fetch_node_with_num(tmp);
 	strcpy(node->path, path);
 	if (node->count == 0) {
 		int writer = 0;
@@ -30,15 +27,14 @@ storage_directory_mk(const char* path) {
 	return tmp;
 }
 
-int
-storage_directory_read(const char* path, void* buf, fuse_fill_dir_t filler) {
+int storage_directory_read(const char *path, void *buf, fuse_fill_dir_t filler) {
 	return pages_read_inodes(path, buf, filler);
 }
 
 // gets the stats - fixed the mode here that fixed the mnt perms
-int storage_stat(const char* path, struct stat* st) {
+int storage_stat(const char *path, struct stat *st) {
 	printf("%s\n", path);
-	file_node* tmp = pages_fetch_node(path);
+	file_node *tmp = pages_fetch_node(path);
 	if (tmp == 0) {
 		return -1;
 	} else {
@@ -56,14 +52,13 @@ int storage_stat(const char* path, struct stat* st) {
 	}
 }
 
-int storage_contains(const char* path) {
-	file_node* node = pages_fetch_node(path);
+int storage_contains(const char *path) {
+	file_node *node = pages_fetch_node(path);
 	return (node == 0) ? -1 : 0;
 }
 
-int
-storage_file_mk(const char* path, mode_t mode) {
-	file_node* node = pages_fetch_node(path);
+int storage_file_mk(const char *path, mode_t mode) {
+	file_node *node = pages_fetch_node(path);
 	if (node != 0) {
 		puts("not here");
 		// basically, this is already a file, and it just returns the
@@ -84,24 +79,24 @@ storage_file_mk(const char* path, mode_t mode) {
 					break;
 				}
 			}
-			char* substr = malloc(64);
+			char *substr = malloc(64);
 			strncpy(substr, path, ii);
 //			pages_add_file_dir("/", path);
 			printf("%s\n", substr);
 			puts("here is the path");
 			if (strlen(substr) == 0) {
 				pages_add_file_dir("/", path);
-			}
-			else {
+			} else {
 				pages_add_file_dir("/", path);
 //				pages_add_file_dir(substr, path);
+			}
+			return tmp;
 		}
-		return tmp;
 	}
 }
 
-int storage_file_rename(const char* path, const char* new) {
-	file_node* node = pages_fetch_node(path);
+int storage_file_rename(const char *path, const char *new) {
+	file_node *node = pages_fetch_node(path);
 	// literally just copy the path over from the old.
 	strcpy(node->path, new); // do i need 0ing.
 	// these aren't sys calls, so ret is just 0
@@ -109,9 +104,8 @@ int storage_file_rename(const char* path, const char* new) {
 }
 
 // first four args of nufs_read, very similar to write data too
-int
-storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
-	file_node* node = pages_fetch_node(path);
+int storage_fetch_data(const char *path, char *buf, size_t size, off_t offset) {
+	file_node *node = pages_fetch_node(path);
 	if (node == 0 || offset < 0) {
 		return -1;
 	} else if (size == 0) {
@@ -125,9 +119,9 @@ storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
 	}
 }
 
-int
-storage_write_data(const char *path, const void* buf, size_t size, off_t offset) {
-	file_node* node = pages_fetch_node(path);
+int storage_write_data(const char *path, const void *buf, size_t size,
+		off_t offset) {
+	file_node *node = pages_fetch_node(path);
 	puts("here in write data");
 	if (node == 0 || offset < 0) {
 		return -1;
@@ -146,9 +140,8 @@ storage_write_data(const char *path, const void* buf, size_t size, off_t offset)
 	return size;
 }
 
-int
-storage_file_rm(const char* path) {
-	file_node* node = pages_fetch_node(path);
+int storage_file_rm(const char *path) {
+	file_node *node = pages_fetch_node(path);
 	if (node == 0) {
 		return -1;
 	} else {
@@ -163,12 +156,11 @@ storage_file_rm(const char* path) {
 // this function can literaly just set all the pointers from target to link
 // and copies some other basic stuff.
 // creates a link
-int
-storage_link(const char* from_path, const char* link_path) {
-	file_node* from_node = pages_fetch_node(from_path);
+int storage_link(const char *from_path, const char *link_path) {
+	file_node *from_node = pages_fetch_node(from_path);
 //	file_node* link_node = pages_fetch_node(link_path);
 	int node_num = pages_fetch_empty();
-	file_node* link_node = pages_fetch_node_with_num(node_num);
+	file_node *link_node = pages_fetch_node_with_num(node_num);
 
 	// copy all the data over to strcpy and all the pointers
 	strcpy(link_node->path, link_path);
