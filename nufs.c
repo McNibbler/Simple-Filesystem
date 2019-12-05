@@ -46,22 +46,15 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
              off_t offset, struct fuse_file_info *fi)
 {
     struct stat st;
-    puts("segfault1");
     int rv = nufs_getattr(path, &st);
     assert(rv == 0);
-
-    puts("segfault2");
     filler(buf, ".", &st, 0);
-
-    puts("segfault3");
     // starter code snippet
 //    rv = nufs_getattr("/hello.txt", &st);
 //    assert(rv == 0);
 //    filler(buf, "hello.txt", &st, 0);
 
-    puts("segfault4");
     storage_directory_read(path, buf, filler);
-    puts("segfault5");
     printf("readdir(%s) -> %d\n", path, rv);
     return 0;
 }
