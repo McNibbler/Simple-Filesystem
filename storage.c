@@ -11,11 +11,13 @@
 #include "pages.h"
 #include "util.h"
 
+// initialization storage
 void storage_init(const char *path) {
 	pages_init(path);
 	storage_directory_mk("/");
 }
 
+// makes directory
 int storage_directory_mk(const char *path) {
 	puts("does this make a directory?");
 	int tmp = storage_file_mk(path, 040777);
@@ -28,6 +30,7 @@ int storage_directory_mk(const char *path) {
 	return tmp;
 }
 
+// reads all files from a directory into a buffer
 int storage_directory_read(const char *path, void *buf, fuse_fill_dir_t filler) {
 	return pages_read_inodes(path, buf, filler);
 }
@@ -56,11 +59,13 @@ int storage_stat(const char *path, struct stat *st) {
 	}
 }
 
+// checks whether or not the storage contains the path
 int storage_contains(const char *path) {
 	file_node *node = pages_fetch_node(path);
 	return (node == 0) ? -1 : 0;
 }
 
+// makes a file
 int storage_file_mk(const char *path, mode_t mode) {
 	file_node *node = pages_fetch_node(path);
 	if (node != 0) {
@@ -105,6 +110,7 @@ int storage_file_mk(const char *path, mode_t mode) {
 	}
 }
 
+// renames a file and updates accessed timestamp
 int storage_file_rename(const char* path, const char* new) {
 	file_node* node = pages_fetch_node(path);
 	node->mtime = time(NULL);
@@ -132,6 +138,7 @@ storage_fetch_data(const char *path, char* buf, size_t size, off_t offset) {
 	}
 }
 
+// writes the data to the storage by a buffer
 int
 storage_write_data(const char *path, const void* buf, size_t size, off_t offset) {
 	file_node* node = pages_fetch_node(path);
@@ -152,6 +159,7 @@ storage_write_data(const char *path, const void* buf, size_t size, off_t offset)
 	return size;
 }
 
+// removes a file from the storage
 int storage_file_rm(const char *path) {
 	file_node *node = pages_fetch_node(path);
 	if (node == 0) {
@@ -194,7 +202,7 @@ int storage_link(const char *from_path, const char *link_path) {
 	return node_num;
 }
 
-
+// changes mode for a file
 int storage_chmod(const char* path, mode_t mode) {
 	file_node* node = pages_fetch_node(path);
 	if (!node) {
@@ -205,7 +213,7 @@ int storage_chmod(const char* path, mode_t mode) {
 	return 0;
 }
 
-
+// creates a symlink by storing the path to the file being linked to
 int storage_symlink(const char* linkname, const char* path) {
 	file_node* from = pages_fetch_node(path);	// Make sure this doesn't
 	if (from) {
@@ -221,6 +229,7 @@ int storage_symlink(const char* linkname, const char* path) {
 	return 0;
 }
 
+// fills the buffer with the name of the file being linked to
 int storage_readlink(const char *from, char* buf, size_t size) {
 	file_node* linkNode = pages_fetch_node(from);
 	if (!linkNode) {
@@ -229,6 +238,7 @@ int storage_readlink(const char *from, char* buf, size_t size) {
 
 	if (linkNode->mode & 0120000) {
 		char* newPath = (char*)pages_get_page(linkNode->ptr[0]);
+		printf("name newPath: %s", newPath);
 		/*printf("%s, %d\n", newPath, size);
 		storage_fetch_data(newPath, buf, size, 0);*/
 		strncpy(buf, newPath, size);
@@ -241,6 +251,7 @@ int storage_readlink(const char *from, char* buf, size_t size) {
 	return 0;
 }
 
+// updates the access and modify times to current
 int storage_utimens(const char* path, const struct timespec ts[2]) {
 	file_node* node = pages_fetch_node(path);
 	if (!node) {
@@ -251,6 +262,3 @@ int storage_utimens(const char* path, const struct timespec ts[2]) {
 	node->mtime = ts[1].tv_sec;
 	return 0;
 }
-
-
-

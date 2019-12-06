@@ -35,6 +35,7 @@ static char* bitmap_block;
 static file_node* file_nodes;
 static void* blocks;
 
+// reads the inode into a buffer, for the stats
 int
 pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
 {
@@ -87,6 +88,7 @@ pages_read_inodes(const char* path, void* buf, fuse_fill_dir_t filler)
     return 0;
 }
 
+// initializes pages
 void
 pages_init(const char* path)
 {
@@ -124,6 +126,7 @@ pages_init(const char* path)
 //    bitmap_put(pbm, 0, 1);
 }
 
+// frees pages, munmaps the mapped data
 void
 pages_free()
 {
@@ -131,6 +134,7 @@ pages_free()
     assert(rv == 0);
 }
 
+// gets a specific page given a pnum
 void*
 pages_get_page(int pnum)
 {
@@ -151,6 +155,7 @@ pages_get_page(int pnum)
 //    return (void*)(page + 32);
 //}
 
+// fetches a specific node given a path
 file_node*
 pages_fetch_node(const char* path) {
 	for (int ii = 0; ii < nodes_count; ++ii) {
@@ -161,6 +166,7 @@ pages_fetch_node(const char* path) {
 	return 0;
 }
 
+// frees a node given that filenode
 void
 pages_free_node(file_node* node) {
 	// frees the node
@@ -171,6 +177,7 @@ pages_free_node(file_node* node) {
 	}
 }
 
+// fetches the first empty page
 int
 pages_fetch_empty() {
 	// the get the first empty node
@@ -183,10 +190,12 @@ pages_fetch_empty() {
 	return -1;
 }
 
+// fetches the node given a inode num
 file_node* pages_fetch_node_with_num(int ii) {
 	return &(file_nodes[ii]);
 }
 
+// gives a page to a node
 int
 pages_give_page(file_node* node)
 {
@@ -197,6 +206,7 @@ pages_give_page(file_node* node)
     return empty;
 }
 
+// remove a node from a directory
 void
 pages_remove_node_dir(file_node* dir, int num) {
 	int* dirs = pages_get_page(dir->ptr[0]);
@@ -218,6 +228,7 @@ pages_remove_node_dir(file_node* dir, int num) {
 	}
 }
 
+// add to file to a directory
 void
 pages_add_file_dir(const char* dir, const char* file) {
 //	printf("dir to add: %s, file to add: %s\n", dir, file);

@@ -96,7 +96,7 @@ is_in_directory_directly(const char* directory, const char* path) {
 	}
 }
 
-// checks if a path is in a directory directly
+// checks if a path is in a root directly
 static int
 is_in_root_directly(const char* path) {
 	for (int ii = 1; ii < strlen(path); ++ii) {

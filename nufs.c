@@ -74,11 +74,6 @@ nufs_mknod(const char *path, mode_t mode, dev_t rdev)
     	rv = storage_directory_mk(path);
     } else {
     	puts("entered file");
-
-
-
-
-
     	rv = storage_file_mk(path, mode);
     }
     printf("mknod(%s, %04o) -> %d\n", path, mode, rv);
@@ -218,12 +213,14 @@ nufs_ioctl(const char* path, int cmd, void* arg, struct fuse_file_info* fi,
 }
 
 
+// Creates a symlink
 int nufs_symlink(const char* linkname, const char* path) {
 	int rv = storage_symlink(linkname, path);
 	printf("symlink -> %d\n", rv);
 	return rv;	
 }
 
+// Reads the link for symlink, gets the node it links to
 int nufs_readlink(const char* path, char* buf, size_t size) {
 	int rv = storage_readlink(path, buf, size);
 	printf("readlink -> %d\n", rv);
