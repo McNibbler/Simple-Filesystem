@@ -217,12 +217,12 @@ int storage_symlink(const char* linkname, const char* path) {
 	}
 	*/
 	
-	int rv = storage_file_mk(path, 0120777);\
+	int rv = storage_file_mk(path, 0120777);
 	if (rv < 0) {
 		return -ENOSPC;
 	}
 	from = pages_fetch_node(path);	// This should exist now
-	//strncpy(pages_get_page(from->ptr[0]), to, 4096);
+	strncpy(pages_get_page(from->ptr[0]), linkname, 4096);
 	return 0;
 }
 
