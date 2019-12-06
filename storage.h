@@ -32,5 +32,6 @@ int    storage_link(const char* target_path, const char* link_path);
 int storage_chmod(const char* path, mode_t mode);
 int storage_symlink(const char* from, const char* to);
 int storage_utimens(const char* path, const struct timespec ts[2]);
+int storage_readlink(const char* from, char* buf, size_t size);
 
 #endif

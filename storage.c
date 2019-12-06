@@ -179,6 +179,7 @@ int storage_link(const char *from_path, const char *link_path) {
 	link_node->mode = from_node->mode;
 	link_node->node_num = node_num;
 	link_node->refs = 0;
+	link_node->size = from_node->size;
 
 	link_node->count = from_node->count;
 	// in case something messes up, dont use link_node->count, use node->count
@@ -206,16 +207,10 @@ int storage_chmod(const char* path, mode_t mode) {
 
 
 int storage_symlink(const char* linkname, const char* path) {
-	file_node* to = pages_fetch_node(linkname);	// Make sure this exists
 	file_node* from = pages_fetch_node(path);	// Make sure this doesn't
 	if (from) {
 		return -EEXIST;
 	}
-	/*
-	else if (!to) {
-		return -ENOENT;
-	}
-	*/
 	
 	int rv = storage_file_mk(path, 0120777);
 	if (rv < 0) {
@@ -223,6 +218,26 @@ int storage_symlink(const char* linkname, const char* path) {
 	}
 	from = pages_fetch_node(path);	// This should exist now
 	strncpy(pages_get_page(from->ptr[0]), linkname, 4096);
+	return 0;
+}
+
+int storage_readlink(const char *from, char* buf, size_t size) {
+	file_node* linkNode = pages_fetch_node(from);
+	if (!linkNode) {
+		return -ENOENT;
+	}
+
+	if (linkNode->mode & 0120000) {
+		char* newPath = (char*)pages_get_page(linkNode->ptr[0]);
+		/*printf("%s, %d\n", newPath, size);
+		storage_fetch_data(newPath, buf, size, 0);*/
+		strncpy(buf, newPath, size);
+	}
+	else {
+		// TODO: Check this error for permissions
+		return -1;
+	}
+
 	return 0;
 }
 
