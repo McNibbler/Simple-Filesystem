@@ -220,10 +220,9 @@ pages_remove_node_dir(file_node* dir, int num) {
 
 void
 pages_add_file_dir(const char* dir, const char* file) {
-	printf("dir to add: %s, file to add: %s\n", dir, file);
+//	printf("dir to add: %s, file to add: %s\n", dir, file);
 	file_node* dirTemp = pages_fetch_node(dir);
-	puts("Thomas look here");
-	printf("%s\n", dirTemp->path);
+//	printf("%s\n", dirTemp->path);
 	// get the int array for the dir
 	int* data = pages_get_page(dirTemp->ptr[0]);
 	file_node* fileTemp = pages_fetch_node(file);

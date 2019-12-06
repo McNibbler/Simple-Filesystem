@@ -179,6 +179,7 @@ int storage_link(const char *from_path, const char *link_path) {
 	link_node->mode = from_node->mode;
 	link_node->node_num = node_num;
 	link_node->refs = 0;
+	link_node->size = from_node->size;
 
 	link_node->count = from_node->count;
 	// in case something messes up, dont use link_node->count, use node->count
@@ -205,24 +206,34 @@ int storage_chmod(const char* path, mode_t mode) {
 }
 
 
-int storage_symlink(const char* linkname, const char* path) {
-	file_node* to = pages_fetch_node(linkname);	// Make sure this exists
-	file_node* from = pages_fetch_node(path);	// Make sure this doesn't
-	if (from) {
-		return -EEXIST;
+int storage_symlink(const char *from_path, const char *link_path) {
+	file_node *from_node = pages_fetch_node(from_path);
+	//	file_node* link_node = pages_fetch_node(link_path);
+	int node_num = pages_fetch_empty();
+	file_node *link_node = pages_fetch_node_with_num(node_num);
+
+	// copy all the data over to strcpy and all the pointers
+	strcpy(link_node->path, link_path);
+	link_node->mode = 120000 | from_node->mode;
+	printf("mode: %d\n", from_node->mode);
+	link_node->node_num = node_num;
+	link_node->refs = 0;
+	link_node->size = from_node->size;
+
+	link_node->count = from_node->count;
+	// in case something messes up, dont use link_node->count, use node->count
+	// this ensures that I'm setting something at every point i guess.
+	for (int ii = 0; ii < link_node->count; ++ii) {
+		link_node->ptr[ii] = from_node->ptr[ii];
 	}
-	/*
-	else if (!to) {
-		return -ENOENT;
-	}
-	*/
-	
-	int rv = storage_file_mk(path, 0120777);\
-	if (rv < 0) {
-		return -ENOSPC;
-	}
-	from = pages_fetch_node(path);	// This should exist now
-	//strncpy(pages_get_page(from->ptr[0]), to, 4096);
+
+	from_node->refs++;
+	link_node->refs++;
+	pages_add_file_dir("/", link_path);
+	return node_num;
+}
+
+int storage_readlink(const char *from, char* buf, size_t size) {
 	return 0;
 }
 
